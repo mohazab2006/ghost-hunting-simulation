@@ -1,0 +1,14 @@
+ # compiled files
+*.o
+*.out
+*.exe
+a.out
+
+# mac junk
+.DS_Store
+
+# python cache
+__pycache__/
+
+# vscode
+.vscode/
