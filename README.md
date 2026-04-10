@@ -1,46 +1,76 @@
 # Ghost Hunting Simulation
 
-A multithreaded C simulation where a team of hunters explores a haunted house to identify a ghost by collecting evidence before fear or boredom forces them to leave.
+**Multithreaded C simulation — COMP2401 Systems Programming, Carleton University**
+
+A concurrent simulation where a team of hunters explores a haunted house to identify a ghost by collecting evidence. Hunters and the ghost run as independent threads, interacting through shared state protected by synchronization primitives.
+
+---
 
 ## Overview
 
-This project simulates a ghost-hunting scenario inside a house with multiple connected rooms. Hunters and the ghost run as separate threads, interacting with the environment at the same time.
+| Field | Detail |
+|---|---|
+| **Course** | COMP2401 — Introduction to Systems Programming |
+| **Institution** | Carleton University |
+| **Language** | C (C99) |
+| **Key concepts** | Multithreading, synchronization, dynamic memory, simulation design |
 
-Hunters must gather enough **unique evidence** and return safely to the van to correctly identify the ghost. If they fail, the ghost wins.
+---
+
+## How it works
+
+Hunters start in the **Van** and move through randomly connected rooms collecting evidence. The ghost moves independently, leaving clues or idling. A shared case file accumulates evidence across all hunter threads.
+
+**Hunters win** if they collect enough unique evidence and return safely to the Van. **Ghost wins** if all hunters flee due to fear or boredom.
+
+---
+
+## Concurrency Design
+
+The core challenge is coordinating 4 hunter threads and 1 ghost thread across shared rooms, a shared case file, and a shared event log — without race conditions or deadlocks.
+
+- **Mutexes** protect room state during movement and evidence collection
+- **Semaphores** control access to the shared case file
+- **Condition variables** coordinate multi-thread termination via shared exit flags
+- **pthreads** manages thread lifecycle — creation, joining, and cleanup
+
+All shared state access is guarded. The simulation is designed so threads can be added or removed without restructuring the synchronization model.
+
+---
 
 ## Features
 
-* Multithreaded simulation using `pthread`
-* 1 ghost thread and up to 4 hunter threads
-* Randomized ghost type, movement, and behaviour
-* Different hunter devices for collecting evidence
-* Shared case file used by all hunters
-* Fear and boredom system affecting hunters
-* CSV logging of hunter and ghost activity
-* Final investigation summary with results
+- 1 ghost thread + up to 4 concurrent hunter threads
+- Randomized ghost type, starting room, and movement behavior each run
+- Each hunter carries a different device detecting a specific evidence type
+- Fear and boredom meters force hunters to flee if they stagnate
+- CSV activity log captures every ghost and hunter action
+- Final investigation summary printed on exit
 
-## How It Works
+---
 
-* Hunters start in the **Van** and move through connected rooms
-* Each hunter has a device that collects specific evidence types
-* The ghost moves, leaves evidence, or idles
-* Hunters update a shared case file with collected evidence
-* The simulation ends when:
+## Project Structure
 
-  * Enough evidence is collected (hunters win), or
-  * Hunters leave due to fear/boredom (ghost wins)
+| File | Role |
+|---|---|
+| `main.c` | Entry point, house setup, thread launch |
+| `defs.h` | All type definitions, constants, enums |
+| `ghost.c` | Ghost thread logic |
+| `hunter.c` | Hunter thread logic |
+| `movement.c` | Room traversal for both agents |
+| `house.c` | House and room initialization |
+| `room.c` | Room data management |
+| `casefile.c` | Shared case file — mutex-protected reads/writes |
+| `stack.c` | Stack for evidence tracking |
+| `helpers.c/h` | Utility functions |
+
+---
 
 ## Build & Run
 
-```bash
+```
 make
 ./project
 ```
 
-## Concepts Used
-
-* Multithreading (`pthread`)
-* Synchronization (semaphores / locks)
-* Structs and enums in C
-* Dynamic memory management
-* Simulation design and state handling
+Each run is non-deterministic — ghost type, room layout, and starting positions are randomized. Activity is logged to CSV for post-run analysis.
